@@ -2,6 +2,7 @@ import base64
 import requests
 import datetime
 import boto3
+import time
 
 def get_search_params(tickers):
           to_return = []
@@ -20,10 +21,9 @@ def upload_to_s3(fileName):
           s3.create_bucket(Bucket="jcox-stock-bucket")
           s3.put_object(Bucket="jcox-stock-bucket", Key=fileName, Body=open(fileName, 'rb'), ContentType='.log')
 
-if __name__ == '__main__':
-          client_secret = 'Your_Key'
-          client_key = 'Your_Key'
-
+def get_twitter_data(user_tracker):
+          client_secret = 'OHF9BIXYQi9WbDUpaORU6mc1aPQPFgTRwz9ZGG1o4Sugpqumcq'
+          client_key = 'gCDZOmD6qJXeYeL8qwWMPXaW4'
           key_secret = '{}:{}'.format(client_key, client_secret).encode('ascii')
           b64_encoded_key = base64.b64encode(key_secret)
           b64_encoded_key = b64_encoded_key.decode('ascii')
@@ -59,29 +59,54 @@ if __name__ == '__main__':
 
           #Create a collection of gathered tweets
           collection_of_tweets = []
+          i = 0
+          new_entries = 0
       
           for entry in response_list:
               stock_tweets =[]
               tweet_data = entry.json()
               for x in tweet_data['statuses']:
-                  print(x['text'])
-                  stock_tweets.append(x['user']['screen_name'] + " said: " + x['text'])
+                  print(x['user']['screen_name']+" said "+ x['text']+"\n")
+                  #Get the user who created the tweet, as well as the stock ticker he is talking about
+                  user = x['user']['screen_name'] + x['text'] + ticker_list[i]
+                  if user in user_tracker:
+                      new_entries = 1 
+                  else:
+                      user_tracker[user] = "Added"
+                      print("Adding new person")
+                      stock_tweets.append(x['user']['screen_name'] + " said: " + x['text'])
               collection_of_tweets.append(stock_tweets)
-          print collection_of_tweets
+              i = i + 1
 
           #Create a log
           #Log files will contain all tickers and be timestamped
           i = 0
           file_name = []
-          for ticker in ticker_list:
-              file_name.append(ticker + "-")
           file_name.append(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+          file_name.append(".log")
           complete_file_name = ''.join(file_name)
-          file = open(complete_file_name, "w")
+          complete_file_name = complete_file_name.replace("$","")
+          #file = open(complete_file_name, "w")
+          file_name_collection = [] 
           for stock in collection_of_tweets:
+              file_name_for_stock = []
+              file_name_for_stock.append(ticker_list[i].replace("$",""))
+              file_name_for_stock.append(complete_file_name)
+              file_name = ''.join(file_name_for_stock)
+              file_name_collection.append(file_name)
+              file = open(file_name,"w")
               file.write("----------"+ ticker_list[i] +"----------\n")
               for tweet in stock:
-                  file.write(tweet.encode('utf8'))
+                  file.write(tweet.encode('utf8')+ "\n")
               i = i + 1
-          file.close()
-          upload_to_s3(complete_file_name)
+              file.close()
+          for name in file_name_collection:
+              upload_to_s3(name)
+
+if __name__ == '__main__':
+          start_time = time.time()
+          user_tracker = {}
+          while True:
+              get_twitter_data(user_tracker)
+              print("Iteration Complete\n")
+              time.sleep(60.0 - ((time.time() - start_time) % 60))
