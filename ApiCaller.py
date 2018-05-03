@@ -3,6 +3,7 @@ import requests
 import datetime
 import boto3
 import time
+import os
 
 def get_search_params(tickers):
           to_return = []
@@ -20,6 +21,8 @@ def upload_to_s3(fileName):
           s3 = boto3.client('s3')
           s3.create_bucket(Bucket="jcox-stock-bucket")
           s3.put_object(Bucket="jcox-stock-bucket", Key=fileName, Body=open(fileName, 'rb'), ContentType='.log')
+          #Clean the created filed
+          os.remove(fileName)
 
 def get_twitter_data(user_tracker):
           client_secret = 'OHF9BIXYQi9WbDUpaORU6mc1aPQPFgTRwz9ZGG1o4Sugpqumcq'
@@ -74,24 +77,24 @@ def get_twitter_data(user_tracker):
                   else:
                       user_tracker[user] = "Added"
                       print("Adding new person")
-                      stock_tweets.append(x['user']['screen_name'] + " said: " + x['text'])
+                      stock_tweets.append("USERNAME: "+x['user']['screen_name'] + " said: " + x['text'])
               collection_of_tweets.append(stock_tweets)
               i = i + 1
 
           #Create a log
           #Log files will contain all tickers and be timestamped
           i = 0
-          file_name = []
-          file_name.append(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
-          file_name.append(".log")
-          complete_file_name = ''.join(file_name)
-          complete_file_name = complete_file_name.replace("$","")
+          extension = []
+          extension.append(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+          extension.append(".log")
+          extension_string = ''.join(extension)
+         
           #file = open(complete_file_name, "w")
           file_name_collection = [] 
           for stock in collection_of_tweets:
               file_name_for_stock = []
               file_name_for_stock.append(ticker_list[i].replace("$",""))
-              file_name_for_stock.append(complete_file_name)
+              file_name_for_stock.append(extension_string)
               file_name = ''.join(file_name_for_stock)
               file_name_collection.append(file_name)
               file = open(file_name,"w")
