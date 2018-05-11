@@ -1,8 +1,8 @@
 import boto3
 import sys
 import botocore
-#client = boto3.client('ses')
-#message = {'Body': {'Text': {'Data': 'This is my body'}, 'Html': {'Data': 'Since Joseph Cox tweeted positive news, I would recommend to hold.'}}, 'Subject': {'Data': 'This is a subject'}}
+client = boto3.client('ses')
+message = {'Body': {'Text': {'Data': 'This is my body'}, 'Html': {'Data': 'Since Joseph Cox tweeted positive news, I would recommend to hold.'}}, 'Subject': {'Data': 'This is a subject'}}
 #client.send_email(Source='josephmanleycox@gmail.com', Destination={'ToAddresses':['josephmanleycox@gmail.com']}, Message=message)
 
 def read_file(bucket_name, key_name_decoded):
@@ -30,9 +30,10 @@ def read_file(bucket_name, key_name_decoded):
                 break
             user_name_tweet = split_content[1].split(" said: ")
             if "Joseph_Cox" in user_name_tweet[0]:
-                 print "Oh kill em!---------------"
+                 message = {'Body': {'Text': {'Data': 'This is my body'}, 'Html': {'Data': 'Since Joseph Cox tweeted positive news, I would recommend to hold. Here is what he said:\n'+user_name_tweet[1]}}, 'Subject': {'Data': 'This is a subject'}}
+                 client.send_email(Source='josephmanleycox@gmail.com', Destination={'ToAddresses':['josephmanleycox@gmail.com']}, Message=message)
+                 print "Message has been sent!"
             i = i + 1
-            print user_name_tweet[0]
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             print("The object does not exist.")
