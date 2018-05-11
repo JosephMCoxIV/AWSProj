@@ -20,9 +20,9 @@ def get_search_params(tickers):
 def upload_to_s3(fileName):
           s3 = boto3.client('s3')
           s3.create_bucket(Bucket="jcox-stock-bucket")
-          s3.put_object(Bucket="jcox-stock-bucket", Key=fileName, Body=open(fileName, 'rb'), ContentType='.log')
+          s3.put_object(Bucket="jcox-stock-bucket", Key=fileName, Body=open(fileName, 'rb'), ContentType='.txt')
           #Clean the created filed
-          os.remove(fileName)
+          #os.remove(fileName)
 
 def get_twitter_data(user_tracker):
           client_secret = 'OHF9BIXYQi9WbDUpaORU6mc1aPQPFgTRwz9ZGG1o4Sugpqumcq'
@@ -69,7 +69,7 @@ def get_twitter_data(user_tracker):
               stock_tweets =[]
               tweet_data = entry.json()
               for x in tweet_data['statuses']:
-                  print(x['user']['screen_name']+" said "+ x['text']+"\n")
+                  print(x['user']['screen_name']+" said "+ x['text']+";\n")
                   #Get the user who created the tweet, as well as the stock ticker he is talking about
                   user = x['user']['screen_name'] + x['text'] + ticker_list[i]
                   if user in user_tracker:
@@ -86,7 +86,7 @@ def get_twitter_data(user_tracker):
           i = 0
           extension = []
           extension.append(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
-          extension.append(".log")
+          extension.append(".txt")
           extension_string = ''.join(extension)
          
           #file = open(complete_file_name, "w")
@@ -98,9 +98,9 @@ def get_twitter_data(user_tracker):
               file_name = ''.join(file_name_for_stock)
               file_name_collection.append(file_name)
               file = open(file_name,"w")
-              file.write("----------"+ ticker_list[i] +"----------\n")
+              file.write("----------"+ ticker_list[i] +"----------:;:\n")
               for tweet in stock:
-                  file.write(tweet.encode('utf8')+ "\n")
+                  file.write(tweet.encode('utf8')+ ":;:\n")
               i = i + 1
               file.close()
           for name in file_name_collection:

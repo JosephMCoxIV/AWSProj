@@ -1,2 +1,2 @@
 # AWSProj
-The purpose of this project is to familiarize  myself with AWS. 
+The purpose of this project is to increase famili 
